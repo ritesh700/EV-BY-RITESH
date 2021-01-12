@@ -1,0 +1,76 @@
+ <html>
+    <head></head>
+    <body style="margin:0"> 
+        <div id="map" style="width: 100vw; height:100vh"></div>
+        <script src="https://js.api.here.com/v3/3.1/mapsjs-core.js"
+        type="text/javascript" charset="utf-8"></script>
+      <script src="https://js.api.here.com/v3/3.1/mapsjs-core-legacy.js"
+        type="text/javascript" charset="utf-8"></script>
+      <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js"
+        type="text/javascript" charset="utf-8"></script>
+      <script src="https://js.api.here.com/v3/3.1/mapsjs-service-legacy.js"
+        type="text/javascript" charset="utf-8"></script>
+        <script>
+            var platform = new H.service.Platform({
+            'apikey': 't6m1MiunW1CkdG8yEtsd2gZQhS3CFuOpo5nH90HHEHM'
+        });
+            
+        
+             // Obtain the default map types from the platform
+            var maptypes = platform.createDefaultLayers();
+
+            // Instantiate and display a map
+             map = new H.Map(document.getElementById('map'), maptypes.vector.normal.map, {
+            center: {lat: 37.85, lng: -120.8366},
+            zoom: 11
+            });
+            
+            const routingService = platform.getRoutingService();
+            const tracyMarker = new H.map.Marker({ lat: 37.7397, lng: -121.4252 });
+            const stocktonMarker = new H.map.Marker({ lat: 37.9577, lng: -121.2908 });
+            const straightLineString = new H.geo.LineString();
+            straightLineString.pushPoint(tracyMarker.getPosition());
+            straightLineString.pushPoint(stocktonMarker.getPosition()); 
+            const straightPolyline = new H.map.Polyline(
+                straightLineString,
+                {
+
+                    style:{
+                        linewidth: 5
+                    }
+                }
+            );
+            const params = {
+            mode: "fastest;car;traffic:enabled",
+            waypoint0: "37.7397,-121.4252",
+            waypoint1: "37.9577,-121.2908",
+            representation: "display",
+            routeAttributes: "summary"
+        };
+                routingService.calculateRoute(params, success => {
+                const routeLineString = new H.geo.LineString();
+                success.response.route[0].shape.forEach(point => {
+                    const [lat, lng] = point.split(",");
+                    routeLineString.pushPoint({
+                        lat: lat,
+                        lng: lng
+                    });
+                });
+                const routePolyline = new H.map.Polyline(
+                    routeLineString,
+                    {
+                        style: {
+                            lineWidth: 5
+                        }
+                    }
+                );
+                map.addObject(routePolyline);
+            }, error => {
+                console.log(error);
+            });
+            map.addObjects([tracyMarker, stocktonMarker, straightPolyline]);
+            console.log(success.response.route[0].summary.distance);console.log(success.response.route[0].summary.distance) 
+        </script>
+        
+    </body>
+</html>
